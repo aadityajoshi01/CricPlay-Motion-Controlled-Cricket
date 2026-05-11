@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CricController 🏏</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="controller-container">
+        <header>
+            <div class="logo">CricPlay 🏏</div>
+            <p style="color: var(--text-dim); font-size: 0.9rem;">Mobile Motion Controller</p>
+        </header>
+
+        <div id="status" class="status-badge status-disconnected">Disconnected</div>
+
+        <div class="debug-panel">
+            <div class="debug-row">
+                <span class="debug-label">Alpha (Spin)</span>
+                <span id="alpha" class="debug-value">0.0</span>
+            </div>
+            <div class="debug-row">
+                <span class="debug-label">Beta (Tilt X)</span>
+                <span id="beta" class="debug-value">0.0</span>
+            </div>
+            <div class="debug-row">
+                <span class="debug-label">Gamma (Tilt Y)</span>
+                <span id="gamma" class="debug-value">0.0</span>
+            </div>
+            <div class="debug-row" style="margin-top: 10px; border-top: 1px solid #30363d; pt: 10px;">
+                <span class="debug-label">Current Force</span>
+                <span id="intensity" class="debug-value">0</span>
+            </div>
+        </div>
+
+        <div class="control-group" style="text-align: left;">
+            <label style="font-size: 0.8rem; color: var(--text-dim);">Sensitivity</label>
+            <input type="range" id="sensitivity" min="100" max="1000" value="500" style="width: 100%; margin-top: 5px;">
+        </div>
+
+        <button id="permission-btn" class="btn">ACTIVATE SENSORS</button>
+        <button id="test-btn" class="btn" style="background: var(--card-bg); margin-top: 5px; font-size: 0.8rem;">SEND TEST SWING</button>
+
+        <div id="sensor-log" style="text-align: left; font-size: 0.7rem; color: #8b949e; font-family: monospace; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 5px; height: 100px; overflow-y: auto; margin-top: 10px; border: 1px solid #30363d;">
+            System Log: Ready.
+        </div>
+
+        <div id="swing-feedback" style="display: none; color: var(--primary); font-weight: 800; animation: pulse 0.5s;">SWING DETECTED!</div>
+        
+        <div class="instructions" style="margin-top: auto; padding-bottom: 20px;">
+            <p>1. Connect via USB or Wi-Fi</p>
+            <p>2. Open this page on phone</p>
+            <p>3. Hold phone like a bat handle</p>
+        </div>
+    </div>
+
+    <style>
+        .logo { font-size: 1.5rem; font-weight: 900; color: var(--primary); letter-spacing: -1px; }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        input[type=range] { accent-color: var(--primary); }
+    </style>
+
+    <script src="controller.js"></script>
+</body>
+</html>

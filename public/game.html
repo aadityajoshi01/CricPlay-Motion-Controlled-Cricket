@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CricPlay Pro 🏏 - The Ultimate Motion Batting</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    
+    <!-- LOADING / START SCREEN -->
+    <div id="screen-start" class="overlay">
+        <div class="card">
+            <h1>CRICPLAY <span style="color: var(--primary);">PRO</span></h1>
+            <p>Connect your phone to play using motion controls</p>
+            <div id="connection-status" style="margin-top: 1rem; font-weight: 600; color: var(--accent);">Waiting for controller...</div>
+            <button id="btn-start" class="btn-primary" style="display: none;">PLAY BALL</button>
+            <div class="instructions-mini" style="margin-top: 2rem; font-size: 0.9rem; color: #64748b;">
+                Tip: Use short, fast flicks with your phone to bat.
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div id="screen-gameover" class="overlay hidden">
+        <div class="card">
+            <h2 style="font-size: 3rem; color: var(--accent);">ALL OUT!</h2>
+            <div style="margin: 2rem 0;">
+                <p class="stat-label">Final Score</p>
+                <p id="final-score" style="font-size: 5rem; font-weight: 900; color: var(--primary);">0</p>
+            </div>
+            <button id="btn-restart" class="btn-primary">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <!-- HUD -->
+    <div class="hud-container">
+        <div class="stat-box">
+            <div class="stat-label">Score</div>
+            <div id="score" class="stat-value">0</div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <div class="stat-box">
+                <div class="stat-label">Balls</div>
+                <div id="balls" class="stat-value">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Wickets</div>
+                <div id="outs" class="stat-value">0/3</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="shot-announcement">6!</div>
+    <div id="commentary" class="commentary">Nice block!</div>
+
+    <canvas id="game-canvas"></canvas>
+
+    <!-- SOUND ASSETS -->
+    <audio id="sfx-hit" src="https://assets.mixkit.co/active_storage/sfx/2600/2600-preview.mp3"></audio>
+    <audio id="sfx-out" src="https://assets.mixkit.co/active_storage/sfx/2594/2594-preview.mp3"></audio>
+    <audio id="sfx-swing" src="https://assets.mixkit.co/active_storage/sfx/2602/2602-preview.mp3"></audio>
+    <audio id="sfx-crowd" src="https://assets.mixkit.co/active_storage/sfx/2591/2591-preview.mp3"></audio>
+
+    <script src="game.js"></script>
+</body>
+</html>
