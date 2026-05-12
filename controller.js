@@ -1,142 +1,129 @@
-const socket = io();
+import { db, ref, set, onValue } from './firebaseConfig.js';
+import { SwingDetector } from './swingDetection.js';
 
-const statusEl = document.getElementById('status');
-const alphaEl = document.getElementById('alpha');
-const betaEl = document.getElementById('beta');
-const gammaEl = document.getElementById('gamma');
-const intensityEl = document.getElementById('intensity');
-const permissionBtn = document.getElementById('permission-btn');
-const sensitivityInput = document.getElementById('sensitivity');
-const swingFeedback = document.getElementById('swing-feedback');
-const logEl = document.getElementById('sensor-log');
+const setupUi = document.getElementById('setup-ui');
+const connectBtn = document.getElementById('connect-btn');
+const controllerUi = document.getElementById('controller-ui');
+const swingIndicator = document.getElementById('swing-indicator');
+const httpsWarning = document.getElementById('https-warning');
 
-const testBtn = document.getElementById('test-btn');
+// Debug elements
+const motionDataEl = document.getElementById('motion-data');
+const lastShotEl = document.getElementById('last-shot');
+const fbInd = document.getElementById('fb-ind');
+const sensorInd = document.getElementById('sensor-ind');
+const pingEl = document.getElementById('ping');
 
-let isEnabled = false;
-let lastSwingSent = 0;
-const SWING_COOLDOWN = 600;
+let swingDetector = null;
+let sensorActive = false;
 
-function log(msg, color = '#8b949e') {
-    const time = new Date().toLocaleTimeString().split(' ')[0];
-    logEl.innerHTML = `<span style="color:${color}">[${time}] ${msg}</span><br>` + logEl.innerHTML;
-    console.log(`[LOG] ${msg}`);
+// Check HTTPS
+if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    httpsWarning.style.display = 'block';
 }
 
-// Manual Test Button
-testBtn.addEventListener('click', () => {
-    log('Sending manual test swing...', '#00d2ff');
-    socket.emit('motion-data', {
-        alpha: 0, beta: 500, gamma: 500, 
-        intensity: 1000,
-        timestamp: Date.now()
-    });
-    triggerLocalFeedback();
-});
-
-// Socket Status
-socket.on('connect', () => {
-    statusEl.textContent = 'Connected';
-    statusEl.className = 'status-badge status-connected';
-    log('Connected to Server', '#3fb950');
-});
-
-socket.on('connect_error', (err) => {
-    log(`Conn Error: ${err.message}`, '#f43f5e');
-});
-
-socket.on('disconnect', () => {
-    statusEl.textContent = 'Disconnected';
-    statusEl.className = 'status-badge status-disconnected';
-    log('Disconnected from Server', '#f43f5e');
-});
-
-// Permission Handling
-permissionBtn.addEventListener('click', async () => {
-    log('Requesting permission...');
-    
-    if (typeof DeviceMotionEvent === 'undefined') {
-        log('DeviceMotionEvent NOT supported by this browser', '#f43f5e');
-        return;
+// Firebase connection status tracking
+const connectedRef = ref(db, ".info/connected");
+onValue(connectedRef, (snap) => {
+    if (snap.val() === true) {
+        fbInd.classList.add('ind-green');
+    } else {
+        fbInd.classList.remove('ind-green');
     }
+});
 
-    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+async function enableWakeLock() {
+    if ('wakeLock' in navigator) {
+        try {
+            await navigator.wakeLock.request('screen');
+        } catch (err) {
+            console.warn(`Wake Lock error: ${err.name}, ${err.message}`);
+        }
+    }
+}
+
+connectBtn.addEventListener('click', async () => {
+    let permissionsGranted = true;
+
+    // iOS 13+ requires explicit permission for DeviceMotion via a user gesture
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
         try {
             const permission = await DeviceMotionEvent.requestPermission();
-            log(`iOS Permission: ${permission}`);
-            if (permission === 'granted') {
-                startMotionDetection();
+            if (permission !== 'granted') {
+                permissionsGranted = false;
+                alert('DeviceMotion permission denied. Cannot use motion controls.');
             }
-        } catch (error) {
-            log(`Permission Error: ${error.message}`, '#f43f5e');
+        } catch (e) {
+            console.error('DeviceMotion permission error:', e);
+            permissionsGranted = false;
+            alert('Failed to request motion permissions. Ensure you are accessing via HTTPS (ngrok).');
         }
-    } else {
-        log('Android/Generic detected');
-        startMotionDetection();
     }
-});
-
-function startMotionDetection() {
-    isEnabled = true;
-    permissionBtn.style.display = 'none';
-    log('Detection Started', '#3fb950');
     
-    window.addEventListener('devicemotion', (event) => {
-        let alpha = 0, beta = 0, gamma = 0, intensity = 0;
+    if (!permissionsGranted) return;
 
-        // Try Gyroscope first
-        if (event.rotationRate && event.rotationRate.alpha !== null) {
-            alpha = event.rotationRate.alpha;
-            beta = event.rotationRate.beta;
-            gamma = event.rotationRate.gamma;
-            intensity = Math.sqrt(beta*beta + gamma*gamma);
-        } 
-        // Fallback to Accelerometer if Gyro is missing/null
-        else if (event.accelerationIncludingGravity) {
-            alpha = event.accelerationIncludingGravity.x || 0;
-            beta = event.accelerationIncludingGravity.y || 0;
-            gamma = event.accelerationIncludingGravity.z || 0;
-            intensity = Math.abs(alpha) + Math.abs(beta) + Math.abs(gamma);
-            
-            // Only log once about fallback
-            if (!window.usingFallback) {
-                log('Using Accelerometer (No Gyro)', '#d29922');
-                window.usingFallback = true;
-            }
-        } else {
-            return; // No data available
+    // Attempt Fullscreen for immersion
+    try {
+        if (document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+            await document.documentElement.webkitRequestFullscreen();
         }
-        
-        // Update Debug UI
-        alphaEl.textContent = alpha.toFixed(1);
-        betaEl.textContent = beta.toFixed(1);
-        gammaEl.textContent = gamma.toFixed(1);
-        intensityEl.textContent = Math.round(intensity);
+    } catch(e) {
+        console.warn("Fullscreen request failed", e);
+    }
 
-        const sensitivity = parseInt(sensitivityInput.value);
+    enableWakeLock();
 
-        // Send data
-        socket.emit('motion-data', {
-            alpha, beta, gamma, 
-            intensity: intensity,
-            timestamp: Date.now()
-        });
+    // Setup UI switch
+    setupUi.classList.add('hidden');
+    controllerUi.classList.remove('hidden');
 
-        if (intensity > sensitivity && Date.now() - lastSwingSent > SWING_COOLDOWN) {
-            triggerLocalFeedback();
-            lastSwingSent = Date.now();
+    swingDetector = new SwingDetector(handleSwing);
+
+    window.addEventListener('devicemotion', (e) => {
+        if (e.rotationRate && (e.rotationRate.alpha !== null || e.rotationRate.beta !== null || e.rotationRate.gamma !== null)) {
+            if (!sensorActive) {
+                sensorActive = true;
+                sensorInd.classList.add('ind-green');
+                sensorInd.classList.remove('ind-yellow');
+            }
+            
+            motionDataEl.innerText = `A:${Math.round(e.rotationRate.alpha || 0)} B:${Math.round(e.rotationRate.beta || 0)} G:${Math.round(e.rotationRate.gamma || 0)}`;
+            swingDetector.process(e.rotationRate);
         }
     });
 
-    // Check if event actually fires after 1 second
+    // Check if sensors are failing silently
     setTimeout(() => {
-        if (alphaEl.textContent === '0.0' && betaEl.textContent === '0.0') {
-            log('WARNING: Events not firing. check HTTPS/Flags', '#f43f5e');
+        if (!sensorActive) {
+            sensorInd.classList.add('ind-yellow');
+            alert("No sensor data received. Your browser is blocking sensors. Please access via the HTTPS ngrok URL.");
         }
-    }, 1000);
-}
+    }, 2500);
+});
 
-function triggerLocalFeedback() {
-    swingFeedback.style.display = 'block';
-    setTimeout(() => { swingFeedback.style.display = 'none'; }, 500);
-    if (navigator.vibrate) navigator.vibrate(50);
+function handleSwing(swingEvent) {
+    const ts = Date.now();
+    swingEvent.timestamp = ts; // Guarantee exact timestamp
+
+    // Upload to Firebase and measure latency
+    set(ref(db, 'controller/gyro/swing'), swingEvent).then(() => {
+        const ping = Date.now() - ts;
+        pingEl.innerText = `${ping}ms`;
+    }).catch(e => console.error("Firebase sync error:", e));
+
+    lastShotEl.innerText = `${swingEvent.direction.toUpperCase()}`;
+
+    // Visual feedback
+    swingIndicator.classList.add('active-swing');
+    swingIndicator.innerText = "SWING!";
+    
+    // Haptic feedback (Android mainly)
+    if (navigator.vibrate) navigator.vibrate([100]);
+
+    setTimeout(() => {
+        swingIndicator.classList.remove('active-swing');
+        swingIndicator.innerText = "READY";
+    }, 300);
 }

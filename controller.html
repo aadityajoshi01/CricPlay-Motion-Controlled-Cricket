@@ -3,68 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CricController 🏏</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="/socket.io/socket.io.js"></script>
+    <title>Cricket Controller</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+      /* Dark theme, mobile friendly, fullscreen */
+      body { 
+          margin: 0; background: #0a0a0f; color: white; font-family: 'Outfit', sans-serif; 
+          display: flex; flex-direction: column; justify-content: center; align-items: center; 
+          height: 100vh; overflow: hidden; user-select: none; touch-action: none;
+      }
+      #setup-ui { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 20px; }
+      h1 { font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(45deg, #00f2ff, #7000ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+      .warning-box { background: rgba(255,50,50,0.1); border: 1px solid #ff4d4d; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9rem; max-width: 320px; display: none; }
+      
+      #connect-btn { padding: 20px 40px; font-size: 1.5rem; background: linear-gradient(45deg, #00f2ff, #7000ff); border: none; border-radius: 50px; color: white; font-weight: bold; margin-bottom: 20px; box-shadow: 0 0 20px #00f2ff; cursor: pointer; transition: transform 0.1s; }
+      #connect-btn:active { transform: scale(0.95); }
+      
+      #status { font-size: 1.2rem; color: #aaa; margin-top: 20px; text-align: center; padding: 0 20px;}
+      .hidden { display: none !important; }
+      #controller-ui { display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: center; }
+      
+      .swing-btn { width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle at center, #1a1a2e 0%, #0a0a0f 100%); border: 4px solid #00f2ff; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: 900; box-shadow: 0 0 30px #00f2ff; margin-bottom: 40px; transition: all 0.1s; }
+      .active-swing { background: #00f2ff; color: black; box-shadow: 0 0 80px #00f2ff; transform: scale(1.1); }
+      
+      #debug-panel { font-family: monospace; font-size: 0.8rem; color: #888; position: absolute; bottom: 10px; width: 100%; text-align: center; display: flex; flex-direction: column; gap: 8px;}
+      .debug-row { display: flex; justify-content: space-evenly; align-items: center; }
+      .indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; margin-right: 5px; }
+      .ind-green { background: #00ff00; }
+      .ind-yellow { background: #ffff00; }
+    </style>
 </head>
 <body>
-    <div class="controller-container">
-        <header>
-            <div class="logo">CricPlay 🏏</div>
-            <p style="color: var(--text-dim); font-size: 0.9rem;">Mobile Motion Controller</p>
-        </header>
-
-        <div id="status" class="status-badge status-disconnected">Disconnected</div>
-
-        <div class="debug-panel">
-            <div class="debug-row">
-                <span class="debug-label">Alpha (Spin)</span>
-                <span id="alpha" class="debug-value">0.0</span>
-            </div>
-            <div class="debug-row">
-                <span class="debug-label">Beta (Tilt X)</span>
-                <span id="beta" class="debug-value">0.0</span>
-            </div>
-            <div class="debug-row">
-                <span class="debug-label">Gamma (Tilt Y)</span>
-                <span id="gamma" class="debug-value">0.0</span>
-            </div>
-            <div class="debug-row" style="margin-top: 10px; border-top: 1px solid #30363d; pt: 10px;">
-                <span class="debug-label">Current Force</span>
-                <span id="intensity" class="debug-value">0</span>
-            </div>
+    <div id="setup-ui">
+        <h1>Motion Bat</h1>
+        <div id="https-warning" class="warning-box">
+            ⚠️ <b>Insecure Connection</b><br>
+            Motion sensors usually require HTTPS. If sensors fail, please restart your server using an ngrok tunnel.
         </div>
-
-        <div class="control-group" style="text-align: left;">
-            <label style="font-size: 0.8rem; color: var(--text-dim);">Sensitivity</label>
-            <input type="range" id="sensitivity" min="100" max="1000" value="500" style="width: 100%; margin-top: 5px;">
+        <p style="color:#aaa; margin-bottom:20px;">Keep your phone screen unlocked.</p>
+        <button id="connect-btn">CONNECT BAT</button>
+    </div>
+    
+    <div id="controller-ui" class="hidden">
+        <div id="swing-indicator" class="swing-btn">READY</div>
+        <div id="status">Hold phone firmly like a bat. Swing to play.</div>
+    </div>
+    
+    <div id="debug-panel">
+        <div class="debug-row">
+            <span><div id="fb-ind" class="indicator"></div>Firebase</span>
+            <span><div id="sensor-ind" class="indicator"></div>Sensors</span>
+            <span>Ping: <span id="ping">0ms</span></span>
         </div>
-
-        <button id="permission-btn" class="btn">ACTIVATE SENSORS</button>
-        <button id="test-btn" class="btn" style="background: var(--card-bg); margin-top: 5px; font-size: 0.8rem;">SEND TEST SWING</button>
-
-        <div id="sensor-log" style="text-align: left; font-size: 0.7rem; color: #8b949e; font-family: monospace; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 5px; height: 100px; overflow-y: auto; margin-top: 10px; border: 1px solid #30363d;">
-            System Log: Ready.
-        </div>
-
-        <div id="swing-feedback" style="display: none; color: var(--primary); font-weight: 800; animation: pulse 0.5s;">SWING DETECTED!</div>
-        
-        <div class="instructions" style="margin-top: auto; padding-bottom: 20px;">
-            <p>1. Connect via USB or Wi-Fi</p>
-            <p>2. Open this page on phone</p>
-            <p>3. Hold phone like a bat handle</p>
+        <div class="debug-row">
+            <span id="motion-data">A: 0 | B: 0 | G: 0</span>
+            <span>Shot: <span id="last-shot" style="color: #00f2ff; font-weight: bold;">NONE</span></span>
         </div>
     </div>
 
-    <style>
-        .logo { font-size: 1.5rem; font-weight: 900; color: var(--primary); letter-spacing: -1px; }
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
-        input[type=range] { accent-color: var(--primary); }
-    </style>
-
-    <script src="controller.js"></script>
+    <script type="module" src="controller.js"></script>
 </body>
 </html>
