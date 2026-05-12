@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Cricket - Motion Batting</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="ui-overlay">
+            <div id="score-board">
+                <div class="stat">RUNS: <span id="score">0</span></div>
+                <div class="stat">WICKETS: <span id="wickets">0</span></div>
+                <div class="stat">OVERS: <span id="overs">0.0</span></div>
+            </div>
+
+            <div id="msg-container">
+                <h1 id="game-msg">READY?</h1>
+                <p id="sub-msg">Connect your phone to play!</p>
+            </div>
+
+            <div id="power-bar-container">
+                <div id="power-bar"></div>
+            </div>
+
+            <div id="shot-indicator">SHOT: <span id="shot-type">NONE</span></div>
+        </div>
+
+        <div id="start-screen">
+            <h1>MOTION CRICKET</h1>
+            <p>1. Open <a href="controller.html" target="_blank" style="color: #00f2ff;">controller.html</a> on your phone</p>
+            <p>2. Hold it like a bat and swing!</p>
+            <button id="start-btn">START MATCH</button>
+        </div>
+
+        <div id="debug-overlay" style="position: absolute; bottom: 20px; right: 20px; font-family: monospace; font-size: 14px; color: #00ffcc; text-align: right; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; border: 1px solid #00ffcc;">
+            <div style="font-weight: bold; margin-bottom: 5px;">[DEV DEBUG TOOLS]</div>
+            <p>Connection: <span id="socket-status">Disconnected</span></p>
+            <p>Ball Depth (Z): <span id="debug-z">0</span> / 100</p>
+            <p>Swing Power: <span id="debug-speed">0</span> / 10</p>
+            <p>Direction: <span id="debug-angle">NONE</span></p>
+            <p>Timing Logic: <span id="debug-timing">NONE</span></p>
+        </div>
+    </div>
+
+    <!-- Module entry point -->
+    <script type="module" src="game.js"></script>
+</body>
+</html>
