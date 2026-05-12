@@ -7,10 +7,10 @@ This project now runs **100% securely over HTTPS via GitHub Pages and Firebase**
 ## 🚀 Play Instantly (No Setup Required)
 
 1. **Open the Game (Laptop/Desktop)**
-   Go to: [https://aadityajoshi.dev/](https://aadityajoshi.dev/)
+   Go to: [https://aadityajoshi01.github.io/CricPlay-Motion-Controlled-Cricket/index.html](https://aadityajoshi01.github.io/CricPlay-Motion-Controlled-Cricket/index.html)
 
 2. **Connect your Bat (Smartphone)**
-   Go to: [https://aadityajoshi.dev/controller.html](https://aadityajoshi.dev/controller.html)
+   Go to: [https://aadityajoshi01.github.io/CricPlay-Motion-Controlled-Cricket/controller.html](https://aadityajoshi01.github.io/CricPlay-Motion-Controlled-Cricket/controller.html)
    *(Since this runs on GitHub Pages over secure HTTPS, iOS Safari and Android Chrome will properly allow access to your phone's motion sensors!)*
 
 ## 🎮 How to Play
