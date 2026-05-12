@@ -1,46 +1,40 @@
-# 🏏 CricPlay: Motion-Controlled Cricket
+# 🏏 CricPlay: Motion-Controlled Cricket (Arcade Edition)
 
-A lightweight, browser-based cricket batting game where your phone acts as the motion-sensing bat.
+A lightweight, purely browser-based arcade cricket batting game where your phone acts as the motion-sensing bat! Inspired by classic arcade games like Stick Cricket and Wii Sports.
 
-## 🚀 Setup Instructions
+This project now runs **100% securely over HTTPS via GitHub Pages and Firebase**, meaning absolutely zero local server setup is required to play!
 
-1. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
+## 🚀 Play Instantly (No Setup Required)
 
-2. **Start the Server**:
-   ```bash
-   npm start
-   ```
+1. **Open the Game (Laptop/Desktop)**
+   Go to: [https://aadityajoshi01.github.io/CricPlay-Motion-Controlled-Cricket/index.html](https://aadityajoshi01.github.io/CricPlay-Motion-Controlled-Cricket/index.html)
 
-3. **Open the Game**:
-   Go to `http://localhost:3000/game.html` on your laptop.
-
-4. **Connect your Phone**:
-   - Find your computer's local IP address (e.g., `192.168.1.10`).
-   - On your phone, go to `http://<YOUR_IP>:3000/controller.html`.
-   - Ensure both devices are on the same Wi-Fi network.
-   - Tap **"Enable Motion"** on your phone.
+2. **Connect your Bat (Smartphone)**
+   Go to: [https://aadityajoshi01.github.io/CricPlay-Motion-Controlled-Cricket/controller.html](https://aadityajoshi01.github.io/CricPlay-Motion-Controlled-Cricket/controller.html)
+   *(Since this runs on GitHub Pages over secure HTTPS, iOS Safari and Android Chrome will properly allow access to your phone's motion sensors!)*
 
 ## 🎮 How to Play
 
-1. Stand in a batting stance, holding your phone like a cricket bat handle.
-2. Watch the ball come from the pitch.
-3. **Swing your phone** when the ball is close (in the white crease area).
-4. Timing is everything:
-   - **Perfect Timing**: 6 Runs!
-   - **Good Timing**: 4 Runs!
-   - **Mistimed**: 1 Run or Edge.
-   - **Miss**: Risks getting bowled (OUT).
+1. Stand in a batting stance, holding your phone firmly like a cricket bat handle.
+2. Watch the ball travel down the pitch on your laptop screen.
+3. **Swing your phone!** The game uses highly tuned arcade-style timing windows:
+   - **Perfect Timing:** Hits a clean Boundary (4 or 6 Runs).
+   - **Good Timing:** Grounded shot for 1 or 2 Runs.
+   - **Late Swing:** Defends the ball (0 Runs).
+   - **Miss:** Miss the ball completely and you lose a wicket!
 
-## 🛠 Tech Stack
+## 🛠 Tech Stack & Architecture
 
-- **Backend**: Node.js, Express, Socket.IO
-- **Frontend**: HTML5 Canvas, Vanilla CSS/JS
-- **Motion**: DeviceMotionEvent (Gyroscope)
+- **Frontend:** Pure HTML5 Canvas, Vanilla JS, CSS
+- **Communication Layer:** Firebase Realtime Database
+- **Hosting:** GitHub Pages
+- **Sensors:** DeviceMotion and DeviceOrientation APIs
 
-## 📋 Requirements
-- A phone with a gyroscope (most modern smartphones).
-- Modern browser (Chrome/Safari recommended).
-- **HTTPS Note**: Modern browsers may require HTTPS or `localhost` for motion sensors. For local development on different devices, you might need to enable "Insecure origins treated as secure" in Chrome flags if using `http` on a local IP.
+Because communication is handled remotely via Firebase, your phone and laptop **do not** need to be on the same Wi-Fi network. You can play anywhere!
+
+## 💻 Developer Debug Mode
+
+The game features a built-in Developer UI in the bottom right corner of the screen. When you swing the phone, it logs:
+- **Ball Depth (Z):** How far down the pitch the ball was when the server registered your swing.
+- **Swing Power:** The 1-10 magnitude score of your arm swing.
+- **Timing Logic:** The exact calculation window the engine placed your hit into.
